@@ -15,7 +15,7 @@ import yaml
 DEBUG = os.getenv("DEBUG")
 DRY_RUN = os.getenv("DRY_RUN")
 
-DOCKER_REPOSITORY = os.getenv("DOCKER_REPOSITORY", "docker.io/flaudisio")
+DOCKER_REPOSITORY = os.getenv("DOCKER_REPOSITORY", "docker.io/shmileee")
 
 IMAGES_DIR = os.getenv("IMAGES_DIR", "images")
 IMAGE = os.getenv("IMAGE", "all")

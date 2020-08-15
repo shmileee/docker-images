@@ -20,8 +20,8 @@ This repository has the following image directories:
 
 ## Where are the images?
 
-All images are [automatically](https://travis-ci.com/flaudisio/docker-images/builds)
-(and regularly) pushed to [Docker Hub](https://hub.docker.com/u/flaudisio).
+All images are [automatically](https://github.com/shmileee/docker-images/actions)
+(and regularly) pushed to [Docker Hub](https://hub.docker.com/u/shmileee).
 
 ## Building
 
@@ -51,7 +51,7 @@ Try the `*-images` targets. Example:
 
 ```sh
 make base-images
-make base-images IMAGE=awscli
+make base-images IMAGE=pre-commit
 
 make child-images
 
@@ -60,25 +60,20 @@ make all-images
 
 Run `make help` for all available commands.
 
-### Using `docker build`
-
-Just run `docker build` in some image directory:
-
-```console
-$ cd images/base/ansible
-$ docker build -t my-ansible .
-$ docker build -t my-ansible:2.7 . --build-arg ansible_version=2.7
-```
-
 ## Adding a new image
 
 To add a new image to this repository:
 
 1. Install [Cookiecutter](https://cookiecutter.readthedocs.io/).
 
-2. Run `make new` and answer some basic questions.
+2. Run `make new-image` and answer some basic questions.
 
 3. There's no step 3.
+
+## Credits
+
+This repository had been forked from [flaudisio/docker-images](https://github.com/flaudisio/docker-images).
+All the credits go to it's original author.
 
 ## License
 
