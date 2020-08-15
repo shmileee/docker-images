@@ -30,7 +30,8 @@ RUN set -eux ; \
         openssl \
         make \
         musl-dev \
-        go ; \
+        go \
+        shellcheck ; \
     pip install \
         "pre-commit==${PRE_COMMIT_VERSION}" ; \
     wget -O \
