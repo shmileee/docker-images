@@ -25,7 +25,9 @@ ENV PRE_COMMIT_VERSION ${pre_commit_version}
 RUN set -eux ; \
     apk add --no-cache \
         bash \
+        curl \
         git \
+        openssl \
         make \
         musl-dev \
         go ; \
@@ -43,6 +45,9 @@ RUN set -eux ; \
     hadolint --version ; \
     \
     rm -rf ~/.cache
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+RUN curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
 # Configure Go
 
