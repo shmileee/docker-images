@@ -1,7 +1,7 @@
 extends: default
 
 ignore: |
-  cookiecutter/**/buildspec.yml
+  template/**/buildspec.yml
 
 rules:
   braces:

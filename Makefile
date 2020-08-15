@@ -1,6 +1,6 @@
 BUILDER_CMD = ./builder/build.py
 
-DOCKER_REPOSITORY ?= docker.io/flaudisio
+DOCKER_REPOSITORY ?= docker.io/shmileee
 
 export DOCKER_REPOSITORY
 
@@ -28,4 +28,4 @@ list-images:  ## List all images in the repository
 	@find images/ -name 'Dockerfile*' | sed -e 's|^images/||' -e 's|/Dockerfile.*||' | sort | column -s '/' -t
 
 new-image:  ## Add a new image to this repository
-	cookiecutter cookiecutter/
+	cookiecutter template/

@@ -19,15 +19,9 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     container:
-      image: flaudisio/pre-commit:latest
+      image: shmileee/pre-commit:latest
     steps:
       - uses: actions/checkout@v1
-      - name: Prepare dependencies
-        run: |
-          wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
-          chmod 755 /usr/local/bin/hadolint
-          hadolint --version
-          pre-commit --version
       - name: Run tests
         run: |
           make test
@@ -46,8 +40,8 @@ jobs:
           pip install -r builder/requirements.txt
       - name: Build and push images (if enabled)
         env:
-          DOCKER_REPOSITORY: docker.io/flaudisio
-          DOCKER_USERNAME: flaudisio
+          DOCKER_REPOSITORY: docker.io/shmileee
+          DOCKER_USERNAME: shmileee
         run: |
           if [ "$GITHUB_REF" = "refs/heads/main" ] ; then
               echo "${{ secrets.DOCKER_PASSWORD }}" | docker login --username "$DOCKER_USERNAME" --password-stdin
