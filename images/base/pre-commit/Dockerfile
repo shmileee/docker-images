@@ -26,7 +26,9 @@ RUN set -eux ; \
     apk add --no-cache \
         bash \
         git \
-        make ; \
+        make \
+        musl-dev \
+        go ; \
     pip install \
         "pre-commit==${PRE_COMMIT_VERSION}" ; \
     wget -O \
@@ -41,5 +43,13 @@ RUN set -eux ; \
     hadolint --version ; \
     \
     rm -rf ~/.cache
+
+# Configure Go
+
+ENV GOROOT /usr/lib/go
+ENV GOPATH /go
+ENV PATH /go/bin:$PATH
+
+RUN mkdir -p ${GOPATH}/src ${GOPATH}/bin
 
 CMD ["pre-commit", "--version"]
