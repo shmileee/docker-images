@@ -42,9 +42,10 @@ jobs:
         env:
           DOCKER_REPOSITORY: docker.io/shmileee
           DOCKER_USERNAME: shmileee
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
           if [ "$GITHUB_REF" = "refs/heads/main" ] ; then
-              echo "${{ secrets.DOCKER_PASSWORD }}" | docker login --username "$DOCKER_USERNAME" --password-stdin
+              echo "${DOCKER_PASSWORD}" | docker login --username "$DOCKER_USERNAME" --password-stdin
               export ENABLE_PUSH=1
           fi
 

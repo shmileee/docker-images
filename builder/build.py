@@ -5,23 +5,33 @@
 #
 ##
 
+import datetime
 import glob
+import json
 import os
 import sys
-import yaml
 import subprocess
-import datetime
+
+import requests
+import yaml
 
 DEBUG = os.getenv("DEBUG")
 DRY_RUN = os.getenv("DRY_RUN")
 
+DOCKER_API_URL = "https://hub.docker.com/v2"
 DOCKER_REPOSITORY = os.getenv("DOCKER_REPOSITORY", "docker.io/shmileee")
+DOCKER_LOGIN = os.getenv("DOCKER_LOGIN", "shmileee")
+DOCKER_PASSWORD = os.getenv("DOCKER_PASSWORD", "")
 
 IMAGES_DIR = os.getenv("IMAGES_DIR", "images")
 IMAGE = os.getenv("IMAGE", "all")
 ENABLE_PUSH = os.getenv("ENABLE_PUSH")
 
-DEFAULTS = {"dockerfile": "Dockerfile", "specfile": "buildspec.yml"}
+DEFAULTS = {
+    "dockerfile": "Dockerfile",
+    "specfile": "buildspec.yml",
+    "readme": "README.md",
+}
 
 
 class bcolors:
@@ -116,6 +126,7 @@ def build_image(image_spec: dict, build_dir: str) -> None:
         tag_aliases = tag.get("aliases", [])
         build_args = tag.get("build_args", [])
         dockerfile = tag.get("dockerfile", DEFAULTS["dockerfile"])
+        readme = tag.get("readme", DEFAULTS["readme"])
 
         image_repo = f"{DOCKER_REPOSITORY}/{image_name}"
         image_fullname = f"{image_repo}:{tag_name}"
@@ -142,6 +153,7 @@ def build_image(image_spec: dict, build_dir: str) -> None:
         with cd(build_dir):
             run_cmd(docker_build_cmd)
             push_image(image_fullname)
+            update_readme(image_name=image_name, readme_path=readme)
 
             for tag_alias in tag_aliases:
                 image_alias_name = f"{image_repo}:{tag_alias}"
@@ -194,6 +206,37 @@ def build_all_images(image_dirs: list) -> None:
 
         for image in buildspec["images"]:
             build_image(image_spec=image, build_dir=image_dir)
+
+
+def get_docker_token() -> str:
+    """Retrieve DockerHub token."""
+    r = requests.post(
+        f"{DOCKER_API_URL}/users/login",
+        data={"username": DOCKER_LOGIN, "password": DOCKER_PASSWORD},
+    )
+
+    return r.json()["token"]
+
+
+def update_readme(image_name: str, readme_path: str) -> str:
+    """Update README section on DockerHub."""
+    show_info(f"Updating README seciton for {image_name}")
+
+    repo = DOCKER_REPOSITORY.split("/")[-1]
+    uri = f"{DOCKER_API_URL}/repositories/{repo}/{image_name}/"
+
+    with open(readme_path) as fd:
+        readme_content = fd.read()
+
+    token = get_docker_token()
+    _ = requests.patch(
+        uri,
+        data=json.dumps({"full_description": readme_content}),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"JWT {token}",
+        },
+    )
 
 
 def main():
