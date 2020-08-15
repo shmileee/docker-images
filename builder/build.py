@@ -7,10 +7,10 @@
 
 import glob
 import os
-import subprocess
 import sys
 import yaml
-
+import subprocess
+import datetime
 
 DEBUG = os.getenv("DEBUG")
 DRY_RUN = os.getenv("DRY_RUN")
@@ -21,10 +21,7 @@ IMAGES_DIR = os.getenv("IMAGES_DIR", "images")
 IMAGE = os.getenv("IMAGE", "all")
 ENABLE_PUSH = os.getenv("ENABLE_PUSH")
 
-DEFAULTS = {
-    "dockerfile": "Dockerfile",
-    "specfile": "buildspec.yml"
-}
+DEFAULTS = {"dockerfile": "Dockerfile", "specfile": "buildspec.yml"}
 
 
 class bcolors:
@@ -37,6 +34,7 @@ class bcolors:
 
 class cd:
     """Context manager for changing the current working directory."""
+
     def __init__(self, new_path):
         self.new_path = os.path.expanduser(new_path)
 
@@ -84,13 +82,19 @@ def get_image_dirs(image_name: str) -> list:
 
 
 def run_cmd(command: list) -> None:
-    """Run `command` using `subprocess.run()`."""
+    """Run `command` using `subprocess.Popen()`."""
     show_info(f"Command: {' '.join(command)}")
 
     if DRY_RUN:
         show_info("Dry run mode enabled - won't run")
     else:
-        subprocess.run(command)
+        try:
+            proc = subprocess.Popen(command, stdout=subprocess.PIPE)
+            stdout = proc.communicate()[0]
+        except Exception as exc:
+            show_error(exc, exit=1)
+        finally:
+            return stdout.decode("utf-8").rstrip("\n")
 
 
 def push_image(image: str) -> None:
@@ -104,6 +108,8 @@ def push_image(image: str) -> None:
 def build_image(image_spec: dict, build_dir: str) -> None:
     """Build a Docker image in `build_dir` based on `image_spec`."""
     image_name = image_spec["name"]
+    vcs_ref = run_cmd(["git", "rev-parse", "--short", "HEAD"])
+    build_date = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
     for tag in image_spec.get("tags"):
         tag_name = tag["name"]
@@ -115,10 +121,16 @@ def build_image(image_spec: dict, build_dir: str) -> None:
         image_fullname = f"{image_repo}:{tag_name}"
 
         docker_build_cmd = [
-            "docker", "image", "build", "--rm", "--force-rm",
+            "docker",
+            "image",
+            "build",
+            "--rm",
+            "--force-rm",
             f"--file={dockerfile}",
+            f"--build-arg=VCS_REF={vcs_ref}",
+            f"--build-arg=BUILD_DATE={build_date}",
             f"--tag={image_fullname}",
-            "."
+            ".",
         ]
 
         for build_arg in build_args:
@@ -137,7 +149,11 @@ def build_image(image_spec: dict, build_dir: str) -> None:
                 show_info(f"Tag alias: {image_alias_name}")
 
                 docker_tag_cmd = [
-                    "docker", "image", "tag", image_fullname, image_alias_name
+                    "docker",
+                    "image",
+                    "tag",
+                    image_fullname,
+                    image_alias_name,
                 ]
 
                 run_cmd(docker_tag_cmd)
